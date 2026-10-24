@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: py${{ matrix.python }} · polars ${{ matrix.polars }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+        polars: ["latest"]
+        include:
+          - python: "3.11"
+            polars: "1.0.0"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          if [ "${{ matrix.polars }}" != "latest" ]; then pip install "polars==${{ matrix.polars }}"; fi
+      - run: ruff check .
+      - run: pytest -q
+      - name: Example on real Seattle permit data
+        run: python examples/seattle_permits.py
+      - name: CLI smoke test
+        run: |
+          python -c "import polars as pl; pl.DataFrame({'id':[1,2,2],'amount':[1.0,-2.0,3.0]}).write_parquet('/tmp/bad.parquet')"
+          printf '[columns.id]\ndtype="int"\nrequired=true\nunique=true\n[columns.amount]\ndtype="float"\nmin=0\n' > /tmp/c.toml
+          if rowgate check /tmp/bad.parquet --contract /tmp/c.toml; then echo "expected failure" && exit 1; fi
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install build && python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

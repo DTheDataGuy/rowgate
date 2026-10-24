@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowgate"
+version = "0.1.0"
+description = "Data contracts and quality gates for Polars: quarantine bad rows with reasons, block bad batches, and write reports people can read."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Dei'Marlon Scisney", email = "info@thedataguys.org" }]
+requires-python = ">=3.11"
+dependencies = ["polars>=1.0"]
+keywords = ["polars", "data-quality", "data-contracts", "data-engineering", "etl", "validation"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Topic :: Software Development :: Quality Assurance",
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyarrow", "ruff>=0.6"]
+
+[project.scripts]
+rowgate = "rowgate.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/DTheDataGuy/rowgate"
+Issues = "https://github.com/DTheDataGuy/rowgate/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowgate"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,48 @@
+# Contract for the City of Seattle Building Permits open dataset
+# (https://data.seattle.gov/Built-Environment/Building-Permits/76t5-zqzr), after typing.
+
+[columns.permit_num]
+dtype = "str"
+required = true
+unique = true
+pattern = '^\d{6,7}-[A-Z]{2}$'
+
+[columns.permit_class]
+dtype = "str"
+accepted = ["Residential", "Non-Residential", "N/A"]
+
+[columns.applied_date]
+dtype = "date"
+
+[columns.issued_date]
+dtype = "date"
+
+[columns.completed_date]
+dtype = "date"
+
+[columns.est_cost]
+dtype = "float"
+min = 0
+max = 5_000_000_000
+
+[columns.zip]
+dtype = "str"
+pattern = '^\d{5}$'
+
+[columns.latitude]
+dtype = "float"
+min = 47.48
+max = 47.74
+
+[columns.longitude]
+dtype = "float"
+min = -122.46
+max = -122.22
+
+[[rules]]
+name = "issued_on_or_after_applied"
+sql = "issued_date >= applied_date"
+
+[[rules]]
+name = "completed_on_or_after_issued"
+sql = "completed_date >= issued_date"
