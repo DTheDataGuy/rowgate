@@ -12,7 +12,10 @@ from rowgate import checks as ck
 
 HERE = Path(__file__).parent
 
-raw = pl.read_ndjson(HERE / "seattle_permits_sample.ndjson", infer_schema_length=None)
+# The open-data API returns every field as text; read it that way and type it below.
+FIELDS = ["permitnum", "permitclassmapped", "permittypemapped", "statuscurrent", "applieddate", "issueddate",
+          "completeddate", "estprojectcost", "housingunits", "originalzip", "latitude", "longitude"]
+raw = pl.read_ndjson(HERE / "seattle_permits_sample.ndjson", schema=dict.fromkeys(FIELDS, pl.Utf8))
 permits = raw.select(
     pl.col("permitnum").alias("permit_num"),
     pl.col("permitclassmapped").alias("permit_class"),
