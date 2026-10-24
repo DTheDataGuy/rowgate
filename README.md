@@ -17,7 +17,7 @@ The only dependency is Polars.
 ## Install
 
 ```bash
-pip install git+https://github.com/DTheDataGuy/rowgate
+pip install git+https://github.com/DTheDataGuy/rowgate@v0.1.0
 ```
 
 ## Quick start
