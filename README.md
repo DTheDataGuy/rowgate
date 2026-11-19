@@ -7,7 +7,8 @@
 **Data contracts and quality gates for [Polars](https://pola.rs). Quarantine bad rows with reasons, block bad batches, and write reports people can read.**
 
 [![ci](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml/badge.svg)](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml)
-[![release](https://img.shields.io/github/v/release/DTheDataGuy/rowgate?color=3FB8AF)](https://github.com/DTheDataGuy/rowgate/releases)
+[![PyPI](https://img.shields.io/pypi/v/rowgate?color=3FB8AF)](https://pypi.org/project/rowgate/)
+[![downloads](https://img.shields.io/pypi/dm/rowgate?color=14161A)](https://pypi.org/project/rowgate/)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB)
 ![polars](https://img.shields.io/badge/polars-1.0%20to%202.0-CD792C)
 ![dependencies](https://img.shields.io/badge/dependencies-polars%20only-success)
@@ -41,7 +42,7 @@ Most validation tools answer one question: did this DataFrame pass? Production p
 ## Install
 
 ```bash
-pip install git+https://github.com/DTheDataGuy/rowgate@v0.1.0
+pip install rowgate
 ```
 
 ## Quick start
@@ -224,7 +225,7 @@ The Markdown output is a table that renders in GitHub, GitLab and most CI summar
 GitHub Actions, failing the job and posting the report to the run summary:
 
 ```yaml
-- run: pip install git+https://github.com/DTheDataGuy/rowgate@v0.1.0
+- run: pip install rowgate
 - run: rowgate check data/orders.parquet --contract contracts/orders.toml --report-dir out/
 - if: always()
   run: cat out/report.md >> "$GITHUB_STEP_SUMMARY"

@@ -36,6 +36,7 @@ rowgate = "rowgate.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/DTheDataGuy/rowgate"
+PyPI = "https://pypi.org/project/rowgate/"
 Documentation = "https://github.com/DTheDataGuy/rowgate#readme"
 Source = "https://github.com/DTheDataGuy/rowgate"
 Issues = "https://github.com/DTheDataGuy/rowgate/issues"
