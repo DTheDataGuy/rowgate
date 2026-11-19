@@ -269,4 +269,4 @@ CI runs the test suite, the Seattle example and a CLI smoke test on Python 3.11,
 
 MIT © Dei'Marlon Scisney · [The Data Guys™](https://www.thedataguys.org)
 
-If rowgate saves you a hand-rolled validation script, a star helps other data engineers find it.
+If rowgate saved you from writing another validation script, a star helps other people find it.
