@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use rowgate, please cite it with this metadata."
+title: "rowgate: data contracts and quality gates for Polars"
+type: software
+authors:
+  - family-names: Scisney
+    given-names: "Dei'Marlon"
+    email: info@thedataguys.org
+    affiliation: "The Data Guys"
+version: 0.1.0
+date-released: 2026-10-23
+license: MIT
+repository-code: "https://github.com/DTheDataGuy/rowgate"
+url: "https://github.com/DTheDataGuy/rowgate"
+abstract: "rowgate splits Polars DataFrames into valid and quarantined rows with a reason for every broken rule, then gates the batch with dataset-level checks and writes JSON, Markdown and text reports."
+keywords:
+  - polars
+  - data quality
+  - data contracts
+  - data validation
+  - data engineering
+  - etl

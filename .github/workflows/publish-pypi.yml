@@ -1,0 +1,20 @@
+name: publish-pypi
+
+# Manual run only. Before the first run, add a trusted publisher on PyPI:
+# owner DTheDataGuy, repository rowgate, workflow publish-pypi.yml, environment pypi.
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install build && python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1

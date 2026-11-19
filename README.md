@@ -1,11 +1,22 @@
+<div align="center">
+
+<img src="docs/assets/social-preview.png" alt="rowgate: data contracts and quality gates for Polars" width="100%">
+
 # rowgate
 
+**Data contracts and quality gates for [Polars](https://pola.rs). Quarantine bad rows with reasons, block bad batches, and write reports people can read.**
+
 [![ci](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml/badge.svg)](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/DTheDataGuy/rowgate?color=3FB8AF)](https://github.com/DTheDataGuy/rowgate/releases)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB)
 ![polars](https://img.shields.io/badge/polars-1.0%20to%202.0-CD792C)
-![license](https://img.shields.io/badge/license-MIT-green)
+![dependencies](https://img.shields.io/badge/dependencies-polars%20only-success)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![stars](https://img.shields.io/github/stars/DTheDataGuy/rowgate?style=social)](https://github.com/DTheDataGuy/rowgate/stargazers)
 
-Data contracts and quality gates for [Polars](https://pola.rs).
+[Install](#install) · [Quick start](#quick-start) · [Why rowgate](#why-rowgate) · [Real data](#on-real-data) · [Contracts](#contracts) · [Checks](#checks) · [CI and orchestrators](#use-it-in-ci-and-orchestrators) · [CLI](#command-line) · [Contributing](CONTRIBUTING.md)
+
+</div>
 
 rowgate does two jobs that most pipelines need and usually hand-roll:
 
@@ -13,6 +24,19 @@ rowgate does two jobs that most pipelines need and usually hand-roll:
 2. **Gate** the batch with dataset-level checks (schema drift, uniqueness, null rates, freshness, reconciliation). `error` checks block the load, `warn` checks are reported. The result is a report you can log as JSON, attach to a run as Markdown or print to a terminal.
 
 The only dependency is Polars.
+
+## Why rowgate
+
+Most validation tools answer one question: did this DataFrame pass? Production pipelines need three more answers. Which rows failed, why did each one fail, and is it safe to load the rest? rowgate is built around those questions.
+
+| You need to | rowgate gives you |
+|---|---|
+| Keep loading good rows when a few are bad | `contract.split(df)` returns `valid` and `quarantine` frames, and proves they add up to the input |
+| Fix source data in one pass | Every broken rule is listed per row, not just the first one |
+| Stop a bad batch before it reaches the warehouse | `Gate(...).run(df).raise_for_errors()` or a CLI exit code of `1` |
+| Tell on-call what happened | Readable observed values such as "3 duplicate keys" or "9.62% null" |
+| Keep rules next to the pipeline | Contracts in Python or TOML, with row rules in SQL or Polars expressions |
+| Stay light | One dependency (Polars), typed, single-pass expression evaluation |
 
 ## Install
 
@@ -195,6 +219,26 @@ The Markdown output is a table that renders in GitHub, GitLab and most CI summar
 | `rows_reconcile` | error | pass | 2 valid + 3 quarantined = 5 vs 5 input | valid + quarantined = input |
 | `quarantine_rate` | error | **FAIL** | 60.0% | < 10% of input quarantined |
 
+## Use it in CI and orchestrators
+
+GitHub Actions, failing the job and posting the report to the run summary:
+
+```yaml
+- run: pip install git+https://github.com/DTheDataGuy/rowgate@v0.1.0
+- run: rowgate check data/orders.parquet --contract contracts/orders.toml --report-dir out/
+- if: always()
+  run: cat out/report.md >> "$GITHUB_STEP_SUMMARY"
+```
+
+Inside an Airflow, Dagster or Prefect task, or any Python job:
+
+```python
+result = contract.split(df)
+result.quarantine.write_parquet("quarantine/orders.parquet")   # keep the evidence
+rg.Gate([ck.reconciles(result), ck.quarantine_rate(result, max_pct=2)]).run(result.valid).raise_for_errors()
+result.valid.write_parquet("silver/orders.parquet")            # only reached when the gate passes
+```
+
 ## Command line
 
 ```bash
@@ -220,6 +264,21 @@ ruff check .
 
 CI runs the test suite, the Seattle example and a CLI smoke test on Python 3.11, 3.12 and 3.13. It also runs the suite against Polars 1.0.0, the oldest supported version.
 
+## Roadmap
+
+Ideas under consideration for upcoming releases. Open an [issue](https://github.com/DTheDataGuy/rowgate/issues) or a [discussion](https://github.com/DTheDataGuy/rowgate/discussions) to vote or propose your own.
+
+- Publish to PyPI so `pip install rowgate` works directly
+- LazyFrame-first `split()` for larger-than-memory batches
+- Contract generation from an existing DataFrame (`Contract.infer(df)`)
+- HTML report output
+
+## Citing rowgate
+
+If rowgate helps your research or reporting, cite it with the metadata in [`CITATION.cff`](CITATION.cff), or use the "Cite this repository" button on GitHub.
+
 ## License
 
-MIT © Dei'Marlon Scisney · [The Data Guys](https://thedataguys.org)
+MIT © Dei'Marlon Scisney · [The Data Guys™](https://www.thedataguys.org)
+
+If rowgate saves you a hand-rolled validation script, a star helps other data engineers find it.

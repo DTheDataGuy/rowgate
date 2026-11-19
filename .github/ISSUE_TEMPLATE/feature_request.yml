@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a new check, contract option or report format
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you solving?
+      description: Describe the data situation, not just the API you want.
+    validations: {required: true}
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed API or behavior
+      render: python

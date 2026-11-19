@@ -12,15 +12,18 @@ license-files = ["LICENSE"]
 authors = [{ name = "Dei'Marlon Scisney", email = "info@thedataguys.org" }]
 requires-python = ">=3.11"
 dependencies = ["polars>=1.0"]
-keywords = ["polars", "data-quality", "data-contracts", "data-engineering", "etl", "validation"]
+keywords = ["polars", "data-quality", "data-contracts", "data-engineering", "etl", "validation", "data-validation", "quarantine", "dataframe", "schema", "data-pipelines", "data-testing", "quality-gate"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Database",
+  "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Quality Assurance",
   "Typing :: Typed",
 ]
@@ -33,7 +36,11 @@ rowgate = "rowgate.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/DTheDataGuy/rowgate"
+Documentation = "https://github.com/DTheDataGuy/rowgate#readme"
+Source = "https://github.com/DTheDataGuy/rowgate"
 Issues = "https://github.com/DTheDataGuy/rowgate/issues"
+Changelog = "https://github.com/DTheDataGuy/rowgate/blob/main/CHANGELOG.md"
+"The Data Guys" = "https://www.thedataguys.org"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rowgate"]

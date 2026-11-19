@@ -1,0 +1,23 @@
+name: Bug report
+description: Something in rowgate does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A short description and what you expected instead.
+    validations: {required: true}
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal example
+      description: A small DataFrame and contract that reproduce the problem.
+      render: python
+    validations: {required: true}
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "rowgate 0.1.0, polars 1.x, Python 3.12, OS"
+    validations: {required: true}

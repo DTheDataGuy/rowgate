@@ -15,3 +15,5 @@ Before you open a pull request:
 - Keep the core dependency list at `polars` only.
 - New checks need a clear `expectation` string and an `observed` value a person can act on, such as "3 duplicate keys" rather than "False".
 - Add a line to `CHANGELOG.md`.
+
+By participating you agree to the [code of conduct](CODE_OF_CONDUCT.md). Report security issues privately, as described in [SECURITY.md](SECURITY.md).
