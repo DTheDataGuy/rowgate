@@ -14,7 +14,7 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![stars](https://img.shields.io/github/stars/DTheDataGuy/rowgate?style=social)](https://github.com/DTheDataGuy/rowgate/stargazers)
 
-[Install](#install) · [Quick start](#quick-start) · [Why rowgate](#why-rowgate) · [Real data](#on-real-data) · [Contracts](#contracts) · [Checks](#checks) · [CI and orchestrators](#use-it-in-ci-and-orchestrators) · [CLI](#command-line) · [Contributing](CONTRIBUTING.md)
+[Install](#install) · [Quick start](#quick-start) · [Why rowgate](#why-rowgate) · [Real data](#on-real-data) · [Contracts](#contracts) · [Checks](#checks) · [CI and orchestrators](#use-it-in-ci-and-orchestrators) · [CLI](#command-line) · [Contributing](CONTRIBUTING.md) · [Cite](CITATION.cff)
 
 </div>
 
@@ -263,19 +263,6 @@ ruff check .
 ```
 
 CI runs the test suite, the Seattle example and a CLI smoke test on Python 3.11, 3.12 and 3.13. It also runs the suite against Polars 1.0.0, the oldest supported version.
-
-## Roadmap
-
-Ideas under consideration for upcoming releases. Open an [issue](https://github.com/DTheDataGuy/rowgate/issues) or a [discussion](https://github.com/DTheDataGuy/rowgate/discussions) to vote or propose your own.
-
-- Publish to PyPI so `pip install rowgate` works directly
-- LazyFrame-first `split()` for larger-than-memory batches
-- Contract generation from an existing DataFrame (`Contract.infer(df)`)
-- HTML report output
-
-## Citing rowgate
-
-If rowgate helps your research or reporting, cite it with the metadata in [`CITATION.cff`](CITATION.cff), or use the "Cite this repository" button on GitHub.
 
 ## License
 
