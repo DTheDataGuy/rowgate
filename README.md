@@ -9,13 +9,14 @@
 [![ci](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml/badge.svg)](https://github.com/DTheDataGuy/rowgate/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/rowgate?color=3FB8AF)](https://pypi.org/project/rowgate/)
 [![downloads](https://img.shields.io/pypi/dm/rowgate?color=14161A)](https://pypi.org/project/rowgate/)
-![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB)
-![polars](https://img.shields.io/badge/polars-1.0%20to%202.0-CD792C)
+![python](https://img.shields.io/badge/python-3.11%20to%203.14-3776AB)
+![polars](https://img.shields.io/badge/polars-1.0%20to%202.1-CD792C)
 ![dependencies](https://img.shields.io/badge/dependencies-polars%20only-success)
+[![docs](https://img.shields.io/badge/docs-dthedataguy.github.io%2Frowgate-127a6b)](https://dthedataguy.github.io/rowgate/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![stars](https://img.shields.io/github/stars/DTheDataGuy/rowgate?style=social)](https://github.com/DTheDataGuy/rowgate/stargazers)
 
-[Install](#install) · [Quick start](#quick-start) · [Why rowgate](#why-rowgate) · [Real data](#on-real-data) · [Contracts](#contracts) · [Checks](#checks) · [CI and orchestrators](#use-it-in-ci-and-orchestrators) · [CLI](#command-line) · [Contributing](CONTRIBUTING.md) · [Cite](CITATION.cff)
+[Docs](https://dthedataguy.github.io/rowgate/) · [Install](#install) · [Quick start](#quick-start) · [Why rowgate](#why-rowgate) · [New in 0.2](#new-in-02) · [Real data](#on-real-data) · [Contracts](#contracts) · [Checks](#checks) · [CI and orchestrators](#use-it-in-ci-and-orchestrators) · [CLI](#command-line) · [Contributing](CONTRIBUTING.md) · [Cite](CITATION.cff)
 
 </div>
 
@@ -25,6 +26,16 @@ rowgate does two jobs that most pipelines need and usually hand-roll:
 2. **Gate** the batch with dataset-level checks (schema drift, uniqueness, null rates, freshness, reconciliation). `error` checks block the load, `warn` checks are reported. The result is a report you can log as JSON, attach to a run as Markdown or print to a terminal.
 
 The only dependency is Polars.
+
+## New in 0.2
+
+- **Draft a contract from your data.** `rowgate infer data.parquet` writes a starter contract with types, ranges, patterns and suggested rules, and points out values that don't fit. [Recipe](https://dthedataguy.github.io/rowgate/recipes/infer/)
+- **Quarantine with a memory.** `QuarantineStore` tracks bad rows across runs, so you can see "these 3 rows have failed for 3 days" and what was fixed. `rowgate history` prints the summary or a one-file HTML dashboard. [Recipe](https://dthedataguy.github.io/rowgate/recipes/history/)
+- **Fix and replay.** `rowgate replay` runs corrected rows back through the contract and marks them resolved. [Recipe](https://dthedataguy.github.io/rowgate/recipes/replay/)
+- **"Why did this batch fail?"** `report.explain(result)` writes a plain-language summary with where to start, for example noticing that every failing value has the same shape and the pattern is probably too strict.
+- **Works where you already work.** A [GitHub Action](https://dthedataguy.github.io/rowgate/recipes/github-actions/), plus ready-made pieces for [dbt](https://dthedataguy.github.io/rowgate/recipes/dbt/), [Dagster](https://dthedataguy.github.io/rowgate/recipes/dagster/), [Airflow](https://dthedataguy.github.io/rowgate/recipes/airflow/) and [Prefect](https://dthedataguy.github.io/rowgate/recipes/prefect/).
+- **Any frame in.** pandas, DuckDB and Arrow inputs work, as do DuckDB files from the CLI. Install extras with `pip install "rowgate[pandas,duckdb]"`.
+- **Faster.** `split` is about 13 times faster than 0.1 (2.18 s down to 0.17 s on 1 million rows, same output). On clean batches it's about 3 times faster than Pandera and Pointblank with a fraction of the memory. [Benchmark, including where rowgate is slower](https://dthedataguy.github.io/rowgate/benchmark/)
 
 ## Why rowgate
 
@@ -222,14 +233,17 @@ The Markdown output is a table that renders in GitHub, GitLab and most CI summar
 
 ## Use it in CI and orchestrators
 
-GitHub Actions, failing the job and posting the report to the run summary:
+GitHub Actions, failing the job and posting the report and explanation to the run summary:
 
 ```yaml
-- run: pip install rowgate
-- run: rowgate check data/orders.parquet --contract contracts/orders.toml --report-dir out/
-- if: always()
-  run: cat out/report.md >> "$GITHUB_STEP_SUMMARY"
+- uses: actions/checkout@v5
+- uses: DTheDataGuy/rowgate@v0.2.0
+  with:
+    data: data/orders.parquet
+    contract: contracts/orders.toml
 ```
+
+Dagster, Prefect, Airflow and dbt each have a ready-made piece in `rowgate.integrations`; see the [recipes](https://dthedataguy.github.io/rowgate/).
 
 Inside an Airflow, Dagster or Prefect task, or any Python job:
 
@@ -244,6 +258,11 @@ result.valid.write_parquet("silver/orders.parquet")            # only reached wh
 
 ```bash
 rowgate check orders.parquet --contract contract.toml --report-dir out/
+rowgate infer orders.parquet > contract.toml            # draft a contract
+rowgate check orders.parquet --contract contract.toml --history quality/history
+rowgate history quality/history --html dashboard.html   # what has been failing, and for how long
+rowgate replay fixed.parquet --contract contract.toml --history quality/history
+rowgate dbt contract.toml --model orders                 # dbt schema.yml tests
 ```
 
 The command reads Parquet, CSV, NDJSON or JSON files. It prints the report and a count of quarantine reasons. With `--report-dir` it also writes `report.json`, `report.md` and `quarantine.parquet`. It exits with `1` when a blocking check fails, so it can stop a CI job or an orchestrator task. Add `--strict` to fail on warnings too.
@@ -263,7 +282,7 @@ pytest -q
 ruff check .
 ```
 
-CI runs the test suite, the Seattle example and a CLI smoke test on Python 3.11, 3.12 and 3.13. It also runs the suite against Polars 1.0.0, the oldest supported version.
+CI runs the test suite, the Seattle example and a CLI smoke test on Python 3.11 to 3.14. It also runs the suite against Polars 1.0.0, the oldest supported version.
 
 ## License
 

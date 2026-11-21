@@ -7,8 +7,8 @@ authors:
     given-names: "Dei'Marlon"
     email: info@thedataguys.org
     affiliation: "The Data Guys"
-version: 0.1.0
-date-released: 2026-10-23
+version: 0.2.0
+date-released: 2026-11-21
 license: MIT
 repository-code: "https://github.com/DTheDataGuy/rowgate"
 url: "https://github.com/DTheDataGuy/rowgate"
