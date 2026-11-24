@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rowgate"
-version = "0.1.0"
+version = "0.2.0"
 description = "Data contracts and quality gates for Polars: quarantine bad rows with reasons, block bad batches, and write reports people can read."
 readme = "README.md"
 license = "MIT"
@@ -22,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Database",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Quality Assurance",
@@ -29,7 +30,11 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pyarrow", "ruff>=0.6"]
+pandas = ["pandas>=2.0", "pyarrow>=14"]
+duckdb = ["duckdb>=1.0"]
+all = ["pandas>=2.0", "pyarrow>=14", "duckdb>=1.0"]
+dev = ["pytest>=8", "pyarrow", "ruff>=0.6", "pandas>=2.0", "duckdb>=1.0"]
+docs = ["mkdocs-material>=9.5"]
 
 [project.scripts]
 rowgate = "rowgate.cli:main"
@@ -37,7 +42,7 @@ rowgate = "rowgate.cli:main"
 [project.urls]
 Homepage = "https://github.com/DTheDataGuy/rowgate"
 PyPI = "https://pypi.org/project/rowgate/"
-Documentation = "https://github.com/DTheDataGuy/rowgate#readme"
+Documentation = "https://dthedataguy.github.io/rowgate/"
 Source = "https://github.com/DTheDataGuy/rowgate"
 Issues = "https://github.com/DTheDataGuy/rowgate/issues"
 Changelog = "https://github.com/DTheDataGuy/rowgate/blob/main/CHANGELOG.md"

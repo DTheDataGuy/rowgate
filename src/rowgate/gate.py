@@ -9,9 +9,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import polars as pl
-
 from .checks import Check
+from .frames import to_polars
 
 
 class GateFailed(RuntimeError):
@@ -55,6 +54,11 @@ class Report:
             raise GateFailed(self)
         return self
 
+    def explain(self, result: Any = None, **kw: Any) -> Any:
+        """Plain-language summary of this report. See :func:`rowgate.explain`."""
+        from .explain import explain
+        return explain(self, result, **kw)
+
     def to_dict(self) -> dict[str, Any]:
         return {"passed": self.passed, "rows": self.rows, "created_at": self.created_at,
                 "meta": self.meta, "errors": len(self.errors), "warnings": len(self.warnings),
@@ -66,15 +70,19 @@ class Report:
             Path(path).write_text(text + "\n")
         return text
 
-    def to_markdown(self, path: str | Path | None = None, title: str = "Data-quality report") -> str:
+    def to_markdown(self, path: str | Path | None = None, title: str = "Data-quality report",
+                    explanation: Any = None) -> str:
         status = "PASS" if self.passed else "FAIL"
         lines = [f"# {title}", "",
                  f"**{status}** · {_rows(self.rows)} · {len(self.results)} checks · "
-                 f"{len(self.errors)} blocking failures · {len(self.warnings)} warnings · {self.created_at}", "",
+                 f"{_count(len(self.errors), 'blocking failure')} · {_count(len(self.warnings), 'warning')} · "
+                 f"{self.created_at}", "",
                  "| Check | Severity | Result | Observed | Expectation |", "|---|---|---|---|---|"]
         for r in self.results:
             res = "pass" if r.passed else ("**FAIL**" if r.severity == "error" else "warn")
             lines.append(f"| `{r.name}` | {r.severity} | {res} | {_md(r.observed)} | {_md(r.expectation)} |")
+        if explanation is not None:
+            lines += ["", "## Why", "", explanation.markdown.rstrip()]
         text = "\n".join(lines) + "\n"
         if path is not None:
             Path(path).write_text(text)
@@ -93,6 +101,10 @@ def _rows(n: int) -> str:
     return f"{n:,} row" + ("" if n == 1 else "s")
 
 
+def _count(n: int, word: str) -> str:
+    return f"{n:,} {word}" + ("" if n == 1 else "s")
+
+
 def _md(s: str) -> str:
     return s.replace("|", "\\|").replace("\n", " ")
 
@@ -107,7 +119,8 @@ class Gate:
             raise ValueError(f"duplicate check names: {sorted(dupes)}")
         self.checks = list(checks)
 
-    def run(self, df: pl.DataFrame, **meta: Any) -> Report:
+    def run(self, df: Any, **meta: Any) -> Report:
+        df = to_polars(df)
         results = []
         for c in self.checks:
             t0 = time.perf_counter()

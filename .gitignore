@@ -6,3 +6,7 @@ dist/
 build/
 *.egg-info/
 .venv/
+quality/
+.venv/
+site/
+benchmarks/.data_*.parquet

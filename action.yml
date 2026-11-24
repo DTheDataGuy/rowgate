@@ -1,0 +1,118 @@
+name: rowgate data contract
+description: Quarantine bad rows with reasons, block bad batches, and post a readable data-quality report to the run summary.
+author: The Data Guys
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  data:
+    description: Path to the data to check (Parquet, CSV, NDJSON, JSON or a DuckDB file)
+    required: true
+  contract:
+    description: Path to the contract TOML
+    required: true
+  table:
+    description: Table to read when data is a DuckDB file, for example main.orders
+    required: false
+    default: ""
+  sql:
+    description: Query to run when data is a DuckDB file
+    required: false
+    default: ""
+  max-quarantine-pct:
+    description: Largest share of rows (percent) that may be quarantined before the batch is blocked
+    required: false
+    default: "1"
+  report-dir:
+    description: Folder for report.json, report.md and quarantine.parquet
+    required: false
+    default: rowgate-report
+  history:
+    description: Folder that keeps quarantine history across runs (cache or commit it to keep it between runs)
+    required: false
+    default: ""
+  strict:
+    description: Treat warnings as failures
+    required: false
+    default: "false"
+  upload-artifact:
+    description: Upload the report folder as a workflow artifact
+    required: false
+    default: "true"
+  python-version:
+    description: Python version to run rowgate with
+    required: false
+    default: "3.12"
+  version:
+    description: rowgate version to install from PyPI (empty means latest)
+    required: false
+    default: ""
+  package:
+    description: Advanced. A pip requirement to install instead of the PyPI release, such as a local path or git URL
+    required: false
+    default: ""
+
+outputs:
+  passed:
+    description: "true when no blocking check failed"
+    value: ${{ steps.check.outputs.passed }}
+  quarantined-rows:
+    description: Number of quarantined rows
+    value: ${{ steps.check.outputs.quarantined }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install rowgate
+      shell: bash
+      env:
+        RG_VERSION: ${{ inputs.version }}
+        RG_PACKAGE: ${{ inputs.package }}
+        RG_DATA: ${{ inputs.data }}
+      run: |
+        extra=""; case "$RG_DATA" in *.duckdb|*.ddb|*.db) extra="[duckdb]";; esac
+        if [ -n "$RG_PACKAGE" ]; then spec="$RG_PACKAGE"
+        elif [ -n "$RG_VERSION" ]; then spec="rowgate$extra==$RG_VERSION"
+        else spec="rowgate$extra"; fi
+        python -m pip install --quiet "$spec"
+        [ -n "$extra" ] && [ -n "$RG_PACKAGE" ] && python -m pip install --quiet duckdb
+        rowgate --version
+    - name: Check data contract
+      id: check
+      shell: bash
+      env:
+        RG_DATA: ${{ inputs.data }}
+        RG_CONTRACT: ${{ inputs.contract }}
+        RG_TABLE: ${{ inputs.table }}
+        RG_SQL: ${{ inputs.sql }}
+        RG_PCT: ${{ inputs.max-quarantine-pct }}
+        RG_DIR: ${{ inputs.report-dir }}
+        RG_HISTORY: ${{ inputs.history }}
+        RG_STRICT: ${{ inputs.strict }}
+      run: |
+        args=(check "$RG_DATA" --contract "$RG_CONTRACT" --max-quarantine-pct "$RG_PCT" --report-dir "$RG_DIR" --github-summary)
+        [ -n "$RG_TABLE" ] && args+=(--table "$RG_TABLE")
+        [ -n "$RG_SQL" ] && args+=(--sql "$RG_SQL")
+        [ -n "$RG_HISTORY" ] && args+=(--history "$RG_HISTORY")
+        [ "$RG_STRICT" = "true" ] && args+=(--strict)
+        set +e; rowgate "${args[@]}"; code=$?; set -e
+        python -c "import json,sys; r=json.load(open(sys.argv[1])); print('passed=' + str(r['passed']).lower())" "$RG_DIR/report.json" >> "$GITHUB_OUTPUT"
+        python -c "import polars as pl,sys; print('quarantined=' + str(pl.read_parquet(sys.argv[1]).height))" "$RG_DIR/quarantine.parquet" >> "$GITHUB_OUTPUT"
+        echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+    - name: Upload report
+      if: always() && inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: rowgate-report
+        path: ${{ inputs.report-dir }}
+        if-no-files-found: ignore
+    - name: Fail when the gate blocks
+      if: steps.check.outputs.exit_code != '0'
+      shell: bash
+      run: |
+        echo "::error title=rowgate::Data contract failed. See the job summary for what broke and why."
+        exit 1

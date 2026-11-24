@@ -1,0 +1,61 @@
+site_name: rowgate
+site_description: Data contracts and quality gates for Polars. Quarantine bad rows with reasons, block bad batches, and write reports people can read.
+site_url: https://dthedataguy.github.io/rowgate/
+repo_url: https://github.com/DTheDataGuy/rowgate
+repo_name: DTheDataGuy/rowgate
+edit_uri: edit/main/docs/
+copyright: MIT · Dei'Marlon Scisney · The Data Guys™
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: indigo
+      toggle: {icon: material/weather-night, name: Dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: indigo
+      toggle: {icon: material/weather-sunny, name: Light mode}
+  features: [navigation.sections, navigation.top, navigation.footer, content.code.copy, search.suggest, toc.follow]
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.highlight: {anchor_linenums: true}
+  - pymdownx.superfences
+  - pymdownx.tabbed: {alternate_style: true}
+  - pymdownx.details
+  - pymdownx.snippets: {base_path: ["."], check_paths: true}
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Concepts: concepts.md
+  - Recipes:
+      - Draft a contract from data: recipes/infer.md
+      - Quarantine, fix and replay: recipes/replay.md
+      - Track failures across runs: recipes/history.md
+      - GitHub Actions: recipes/github-actions.md
+      - dbt: recipes/dbt.md
+      - Dagster: recipes/dagster.md
+      - Airflow: recipes/airflow.md
+      - Prefect: recipes/prefect.md
+      - pandas, DuckDB and Arrow: recipes/frames.md
+      - Alert a channel when a batch fails: recipes/alerts.md
+  - Reference:
+      - Contracts: reference/contracts.md
+      - Checks: reference/checks.md
+      - Command line: reference/cli.md
+      - Python API: reference/api.md
+  - Benchmark: benchmark.md
+  - Case study, Seattle permits: seattle-permits.md
+  - "Quarantine, don't drop": blog/quarantine-dont-drop.md
+  - Changelog: changelog.md

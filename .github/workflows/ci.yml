@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.11", "3.12", "3.13"]
+        python: ["3.11", "3.12", "3.13", "3.14"]
         polars: ["latest"]
         include:
           - python: "3.11"
@@ -36,6 +36,9 @@ jobs:
           python -c "import polars as pl; pl.DataFrame({'id':[1,2,2],'amount':[1.0,-2.0,3.0]}).write_parquet('/tmp/bad.parquet')"
           printf '[columns.id]\ndtype="int"\nrequired=true\nunique=true\n[columns.amount]\ndtype="float"\nmin=0\n' > /tmp/c.toml
           if rowgate check /tmp/bad.parquet --contract /tmp/c.toml; then echo "expected failure" && exit 1; fi
+          rowgate infer examples/seattle_permits_sample.ndjson > /tmp/draft.toml && head -5 /tmp/draft.toml
+      - name: History demo
+        run: python examples/quarantine_history.py
 
   build:
     runs-on: ubuntu-latest
@@ -49,3 +52,32 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  integrations:
+    name: integrations (dagster, prefect, duckdb, pandas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,all]" dagster prefect
+      - run: pytest -q tests/test_integrations.py tests/test_frames.py
+
+  action:
+    name: GitHub Action on a fixture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build a clean fixture
+        run: |
+          pip install polars
+          python -c "import polars as pl; pl.DataFrame({'id':[1,2,3],'amount':[1.0,2.0,3.0]}).write_parquet('/tmp/good.parquet')"
+          printf '[columns.id]\ndtype="int"\nrequired=true\nunique=true\n[columns.amount]\ndtype="float"\nmin=0\n' > /tmp/c.toml
+      - id: gate
+        uses: ./
+        with:
+          data: /tmp/good.parquet
+          contract: /tmp/c.toml
+          package: .
+      - run: test "${{ steps.gate.outputs.passed }}" = "true"
